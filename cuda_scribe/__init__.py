@@ -16,7 +16,7 @@ Quick start:
 
     hip_source = hipify(cuda_source)
 """
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 from cuda_scribe.amd_bridge import AMDBridge, AMDTranslationResult, TranslationPath
 from cuda_scribe.hipify import hipify, HipifyConfig, HipifyResult, get_translation_coverage
