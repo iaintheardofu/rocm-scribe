@@ -23,10 +23,10 @@ def cmd_info(args):
 
     coverage = get_translation_coverage()
     print(f"cuda-scribe v{__version__}")
-    print(f"\nHIPIFY coverage: {coverage.get('total_mappings', 'N/A')} API mappings")
+    print(f"\nHIPIFY coverage: {coverage.get('total', 'N/A')} API mappings")
     print(f"\nSupported AMD targets:")
     for arch_name, spec in AMD_SPECS.items():
-        print(f"  {arch_name}: {spec.get('gpu', 'N/A')} ({spec.get('gfx', 'N/A')})")
+        print(f"  {arch_name}: {spec.arch} ({spec.compute_units} CUs, {spec.wavefront_width}-wide wavefronts)")
 
 
 def cmd_analyze(args):
