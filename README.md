@@ -157,7 +157,7 @@ CUDA Source (.cu)
 |---|---|---|
 | 0. Semantic Analysis | Parses CUDA AST, extracts thread model, memory access patterns, sync topology | Open Source |
 | 1. Pattern Matching | Matches against 47 verified CUDA-to-Triton translation templates | Open Source |
-| 2. LLM Translation | Multi-model semantic-enriched translation (Claude + GPT ensemble) | Pro |
+| 2. LLM Translation | Multi-model semantic-enriched translation (LLM ensemble) | Pro |
 | 3. Static Verification | Triton IR compilation, memory bounds checking, mask completeness | Open Source |
 | 4. Dynamic Verification | Cross-backend ULP numeric comparison with 50+ run stochastic variance | Pro |
 | 5. Performance Optimization | Roofline analysis, wavefront-aware autotuning, bandwidth maximization | Open Source |
