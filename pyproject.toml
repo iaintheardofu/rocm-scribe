@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rocm-scribe"
-version = "1.0.0"
+version = "1.0.1"
 description = "Automated CUDA-to-ROCm GPU kernel translation -- break free from CUDA lock-in with semantic BridgeIR"
 readme = "README.md"
 license = "Apache-2.0"
