@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rocm-scribe"
+version = "1.0.0"
+description = "Automated CUDA-to-ROCm GPU kernel translation -- break free from CUDA lock-in with semantic BridgeIR"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    {name = "The AI Cowboys", email = "mike@theaicowboys.com"},
+]
+keywords = ["cuda", "amd", "rocm", "hip", "triton", "gpu", "translation", "kernel"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Compilers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: System :: Hardware",
+]
+dependencies = []
+
+[project.optional-dependencies]
+triton = ["triton>=3.0"]
+torch = ["torch>=2.0"]
+all = ["triton>=3.0", "torch>=2.0"]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+rocm-scribe = "cuda_scribe.cli:main"
+cuda-scribe = "cuda_scribe.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/iaintheardofu/rocm-scribe"
+Documentation = "https://github.com/iaintheardofu/rocm-scribe/tree/main/docs"
+Repository = "https://github.com/iaintheardofu/rocm-scribe"
+Issues = "https://github.com/iaintheardofu/rocm-scribe/issues"
+
+[tool.setuptools.packages.find]
+include = ["cuda_scribe*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
