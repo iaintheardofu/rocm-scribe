@@ -7,7 +7,7 @@ the coverage of AMD's official HIPIFY-perl and HIPIFY-clang tools, with
 additional wavefront-aware optimization passes.
 
 Translation coverage:
-  - Runtime API: 200+ CUDA runtime functions → HIP equivalents
+  - Runtime API: 96 CUDA runtime functions → HIP equivalents
   - Driver API: key cuCtx/cuModule/cuStream functions
   - Math API: all CUDA math intrinsics
   - Warp intrinsics: mask removal for AMD wavefronts

@@ -34,8 +34,6 @@ Usage:
     result = bridge.benchmark_on_nvidia(cuda_source) # Verify on NVIDIA first
     result = bridge.deploy_to_amd(cuda_source)      # Full pipeline to AMD GPU
 
-Via power.py:
-    w.scribe("amd_bridge", cuda_source="...")
 """
 from __future__ import annotations
 
@@ -113,16 +111,16 @@ class AMDBridge:
     def __init__(
         self,
         target_arch: AMDArch = AMDArch.CDNA3,
-        venus_host: str = "venus",
-        venus_proxy: str = "phobos",
-        venus_user: str = "mike",
+        amd_host: Optional[str] = None,
+        amd_user: Optional[str] = None,
+        ssh_proxy: Optional[str] = None,
     ):
         self.target_arch = target_arch
         self.lifter = CUDALifter()
         self.hip_backend = HIPBackend()
-        self.venus_host = venus_host
-        self.venus_proxy = venus_proxy
-        self.venus_user = venus_user
+        self.amd_host = amd_host
+        self.amd_user = amd_user
+        self.ssh_proxy = ssh_proxy
         self._triton_kernels_cache: Dict[str, str] = {}
 
     def translate(
@@ -230,13 +228,17 @@ class AMDBridge:
             generate_triton_amd_config(kernel.pattern.value),
         )
 
-        # Run on Venus via SSH
-        script = self._build_venus_benchmark_script(triton_code, kernel)
-        try:
-            result = self._run_on_venus(script)
-            return {"success": True, "output": result, "triton_source": triton_code}
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        # Run on AMD host via SSH if configured
+        script = self._build_benchmark_script(triton_code, kernel)
+        if self.amd_host:
+            try:
+                result = self._run_on_remote(script)
+                return {"success": True, "output": result, "triton_source": triton_code}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+        else:
+            return {"success": True, "triton_source": triton_code,
+                    "note": "No AMD host configured. Set amd_host to run remotely."}
 
     def deploy_to_amd(
         self,
@@ -576,8 +578,8 @@ class AMDBridge:
 
         return warnings
 
-    def _build_venus_benchmark_script(self, triton_code: str, kernel: BridgeKernel) -> str:
-        """Build a benchmark script for Venus execution."""
+    def _build_benchmark_script(self, triton_code: str, kernel: BridgeKernel) -> str:
+        """Build a benchmark script for remote AMD GPU execution."""
         return f'''
 import triton
 import triton.language as tl
@@ -592,16 +594,19 @@ print("Pattern: {kernel.pattern.value}")
 print("Params: {[p.name for p in kernel.params]}")
 '''
 
-    def _run_on_venus(self, script: str) -> str:
-        """Execute a Python script on Venus via SSH."""
+    def _run_on_remote(self, script: str) -> str:
+        """Execute a Python script on a remote AMD GPU host via SSH."""
+        if not self.amd_host or not self.amd_user:
+            raise RuntimeError("amd_host and amd_user must be configured for remote execution")
+        proxy = f'-J {self.amd_user}@{self.ssh_proxy} ' if self.ssh_proxy else ''
         cmd = (
-            f'ssh -J {self.venus_user}@{self.venus_proxy} '
-            f'{self.venus_user}@{self.venus_host} '
-            f'"source ~/cuda_scribe_env/bin/activate && python3 -c \'{script}\'"'
+            f'ssh {proxy}'
+            f'{self.amd_user}@{self.amd_host} '
+            f'"python3 -c \'{script}\'"'
         )
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
         if result.returncode != 0:
-            raise RuntimeError(f"Venus execution failed: {result.stderr}")
+            raise RuntimeError(f"Remote execution failed: {result.stderr}")
         return result.stdout
 
     def _run_on_amd(
@@ -831,8 +836,7 @@ print(json.dumps({{"gpu": gpu_name, "is_amd": is_amd, "pattern": "{kernel.patter
             "translation_paths": ["triton", "hip"],
             "triton_amd_backend": self._check_triton_amd(),
             "hipcc_available": self._check_hipcc(),
-            "venus_accessible": True,  # Assumed based on earlier tests
-            "amd_hardware": "placeholder — not yet available",
+            "remote_host": self.amd_host or "not configured",
             "supported_kernels": [
                 "elementwise/map",
                 "reduction",

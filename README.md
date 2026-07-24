@@ -20,7 +20,7 @@ ROCm Scribe translates CUDA GPU kernels to run on AMD hardware. Not string repla
 Two production paths:
 
 1. **CUDA to Triton** -- Same kernel runs on NVIDIA *and* AMD. Zero code changes between vendors.
-2. **CUDA to HIP C++** -- Direct source-level translation with 316 API mappings covering the full ROCm stack.
+2. **CUDA to HIP C++** -- Direct source-level translation with 329 API mappings covering the full ROCm stack.
 
 ```bash
 pip install rocm-scribe
@@ -141,7 +141,7 @@ CUDA Source (.cu)
     |         AMD-specific autotuning configs
     |
     +---> [HIP Backend] -- AMD native C++
-    |         316 API mappings (cuBLAS->rocBLAS, cuDNN->MIOpen, etc.)
+    |         329 API mappings (cuBLAS->rocBLAS, cuDNN->MIOpen, etc.)
     |         MFMA instruction targeting
     |         Wavefront reduction (6 steps vs 5)
     |
@@ -168,19 +168,21 @@ The open-source edition gives you stages 0, 1, 3, and 5 -- enough to translate s
 
 ## HIPIFY -- Complete API Translation
 
-316 CUDA-to-HIP API mappings covering the full ROCm stack:
+329 CUDA-to-HIP API mappings covering the full ROCm stack:
 
 | Library | CUDA | ROCm/HIP | Mappings |
 |---|---|---|---|
 | **Runtime** | `cudaMalloc`, `cudaMemcpy`, `cudaDeviceSynchronize`, ... | `hipMalloc`, `hipMemcpy`, `hipDeviceSynchronize`, ... | 96 |
-| **Types** | `cudaError_t`, `cudaStream_t`, `dim3`, ... | `hipError_t`, `hipStream_t`, `dim3`, ... | 45 |
-| **BLAS** | cuBLAS | rocBLAS | 50 |
-| **DNN** | cuDNN | MIOpen | 20 |
-| **FFT** | cuFFT | rocFFT | 15+ |
-| **Sparse** | cuSPARSE | rocSPARSE | 15+ |
-| **RNG** | cuRAND | rocRAND | 15+ |
+| **Types** | `cudaError_t`, `cudaStream_t`, `dim3`, ... | `hipError_t`, `hipStream_t`, `dim3`, ... | 40 |
+| **Headers** | `cuda_runtime.h`, `cublas_v2.h`, ... | `hip/hip_runtime.h`, `rocblas/rocblas.h`, ... | 21 |
+| **Warp** | `__shfl_down_sync`, `__ballot_sync`, ... | `__shfl_down`, `__ballot`, ... | 10 |
+| **BLAS** | cuBLAS | rocBLAS | 49 + 24 types |
+| **DNN** | cuDNN | MIOpen | 26 |
+| **FFT** | cuFFT | rocFFT | 11 |
+| **Sparse** | cuSPARSE | rocSPARSE | 11 |
+| **RNG** | cuRAND | rocRAND | 14 |
 | **Collectives** | NCCL | RCCL | 11 |
-| **Sorting/Scan** | CUB | hipCUB | 15+ |
+| **Sorting/Scan** | CUB | hipCUB | 16 |
 | **Thrust** | Thrust | rocThrust | (drop-in) |
 
 ```python
@@ -188,7 +190,7 @@ from cuda_scribe import hipify, HipifyConfig, get_translation_coverage
 
 # Check current coverage
 coverage = get_translation_coverage()
-print(f"Total API mappings: {coverage['total_mappings']}")
+print(f"Total API mappings: {coverage['total']}")
 
 # Translate with diagnostics
 config = HipifyConfig(target_arch="gfx942")
@@ -365,7 +367,7 @@ for target, code in results.items():
 
 | Feature | hipify-clang | GEAK | Academic | **ROCm Scribe** |
 |---|---|---|---|---|
-| API mapping (CUDA to HIP) | Yes | No | No | **Yes (316 mappings)** |
+| API mapping (CUDA to HIP) | Yes | No | No | **Yes (329 mappings)** |
 | Kernel translation | No | Yes | Yes | **Yes (BridgeIR)** |
 | Translation accuracy | N/A | 54--63% | Varies | **Verified correct** |
 | Wavefront optimization | No | No | No | **Yes (64-wide)** |
