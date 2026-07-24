@@ -376,6 +376,7 @@ for target, code in results.items():
 | Numeric verification | No | No | No | **Pro** |
 | Quantization kernels | No | No | 0% success | **Pro** |
 | Evolutionary repair | No | No | No | **Pro** |
+| Cross-platform | Linux only | Linux only | Linux only | **Linux, macOS, Windows** |
 
 ## Examples
 
@@ -392,6 +393,22 @@ The `examples/` directory contains 5 complete CUDA kernels:
 ```bash
 rocm-scribe translate examples/vector_add.cu --backend amd
 rocm-scribe translate examples/softmax.cu --backend both
+```
+
+## Platform Support
+
+ROCm Scribe runs on **Linux, macOS, and Windows**. The translation pipeline is pure Python with no OS-specific dependencies — translate CUDA kernels on any workstation and deploy to AMD hardware.
+
+| Platform | Translation | On-Device Compilation | Notes |
+|---|---|---|---|
+| **Linux** | Yes | Yes (ROCm + hipcc) | Full pipeline including AMD GPU execution |
+| **macOS** | Yes | Metal backend only | Translate + verify on Apple Silicon |
+| **Windows** | Yes | Yes (ROCm via WSL2) | Native Python, GPU via WSL2 |
+
+```bash
+# Works the same on all platforms
+pip install rocm-scribe
+rocm-scribe translate kernel.cu --backend amd
 ```
 
 ## Installation
